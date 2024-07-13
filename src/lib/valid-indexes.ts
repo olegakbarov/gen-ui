@@ -14,9 +14,14 @@ export const validIndexesFromSchema = (data: any) => {
 
     res.forEach(([_, index]) => {
       if (res.filter(([_, i]) => i === index).length === arrItemKeys.length) {
+        console.log({
+          resFilter: res.filter(([_, i]) => i === index).length,
+          arrItemKeysLength: arrItemKeys.length,
+        });
         validIndexes.add(index);
       }
     });
   });
+  // console.log({ validIndexes });
   return validIndexes;
 };

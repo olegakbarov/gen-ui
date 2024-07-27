@@ -6,16 +6,18 @@ import ZodStream from "zod-stream";
 import { jsonToZod } from "@/lib/json-to-zod";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { newSchema, newText } from "@/prompts";
-import { validIndexesFromSchema } from "@/lib/valid-indexes";
+import { Timeline } from "@/components/timeline";
+import { timelineFallbacks, TimelineItem } from "@/components/timeline-item";
 
 const Main = () => {
   const [prompt] = useState("go");
-  const [result, setResult] = useState({});
+  const [result, setResult] = useState({
+    timeline: [],
+    _meta: { _activePath: [], _completedPaths: [] },
+  });
   const [schema, setSchema] = useState(newSchema);
   const [text, setText] = useState(newText);
-
   const [loading, setLoading] = useState(false);
 
   const startStream = async ({ url }: { url: string }) => {
@@ -75,9 +77,6 @@ const Main = () => {
     }
   };
 
-  const timeline = result?.timeline || [];
-  const validIndexes = validIndexesFromSchema(result);
-
   return (
     <div className="container pt-2 h-screen">
       <div className="flex gap-10 h-screen">
@@ -118,28 +117,25 @@ const Main = () => {
               )}
             </Button>
             <div className="mt-5">
-              {timeline.length > 0 &&
-                timeline.map((e, i) =>
-                  validIndexes.has(i) ? (
-                    <ol
-                      key={e.eventTitle}
-                      className="relative border-s border-gray-200 dark:border-gray-700"
-                    >
-                      <li className="ms-4">
-                        <div className="absolute w-3 h-3 bg-gray-200 rounded-full mt-1.5 -start-1.5 border border-white dark:border-gray-900 dark:bg-gray-700"></div>
-                        <time className="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-                          {e.date}
-                        </time>
-                        <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                          {e.actor}
-                        </h3>
-                        <p className="text-base font-normal text-gray-500 dark:text-gray-400">
-                          {e.details}
-                        </p>
-                      </li>
-                    </ol>
-                  ) : null
-                )}
+              <ol
+                className={
+                  "relative dark:border-gray-700 border-s border-gray-200"
+                }
+              >
+                <Timeline
+                  data={result}
+                  timelineKey="timeline"
+                  fallbacks={timelineFallbacks}
+                >
+                  {(item, metadata) => (
+                    <TimelineItem
+                      key={item.eventTitle}
+                      {...item}
+                      {...metadata}
+                    />
+                  )}
+                </Timeline>
+              </ol>
             </div>
           </div>
         </div>

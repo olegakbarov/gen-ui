@@ -14,7 +14,6 @@ type TimelineItemProps = z.infer<typeof TimelineItemSchema>;
 export const TimelineItem = (
   data: TimelineItemProps & TimelineItemMetadata
 ) => {
-  console.log({ data });
   if (!data.isCompleted) {
     return (
       <>

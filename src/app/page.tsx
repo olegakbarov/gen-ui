@@ -11,7 +11,6 @@ import { Timeline } from "@/components/timeline";
 import { timelineFallbacks, TimelineItem } from "@/components/timeline-item";
 
 const Main = () => {
-  const [prompt] = useState("go");
   const [result, setResult] = useState({
     timeline: [],
     _meta: { _activePath: [], _completedPaths: [] },
@@ -66,7 +65,7 @@ const Main = () => {
   };
 
   const submitMessage = async () => {
-    if (!prompt.length || loading) return;
+    if (loading) return;
 
     try {
       await startStream({
@@ -117,11 +116,7 @@ const Main = () => {
               )}
             </Button>
             <div className="mt-5">
-              <ol
-                className={
-                  "relative dark:border-gray-700 border-s border-gray-200"
-                }
-              >
+              <ol className={"relative dark:border-gray-700 "}>
                 <Timeline
                   data={result}
                   timelineKey="timeline"

@@ -121,11 +121,18 @@ const Main = () => {
             </Button>
             <div className="mt-5">
               <ol className={"relative dark:border-gray-700 "}>
+<<<<<<< HEAD
                 <TokenStreamArray
                   data={result}
                   schemaKey="timeline"
                   fallbacks={timelineFallbacks}
                   schema={TimelineItemSchema}
+=======
+                <Timeline
+                  data={result}
+                  timelineKey="timeline"
+                  fallbacks={timelineFallbacks}
+>>>>>>> ff31f1904c6da8b8fdf29c443a9bf6d9ffc401f3
                 >
                   {(item, metadata) => (
                     <TimelineItem
@@ -134,7 +141,11 @@ const Main = () => {
                       {...metadata}
                     />
                   )}
+<<<<<<< HEAD
                 </TokenStreamArray>
+=======
+                </Timeline>
+>>>>>>> ff31f1904c6da8b8fdf29c443a9bf6d9ffc401f3
               </ol>
             </div>
           </div>

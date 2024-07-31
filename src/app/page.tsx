@@ -6,17 +6,21 @@ import ZodStream from "zod-stream";
 import { jsonToZod } from "@/lib/json-to-zod";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { newSchema, newText } from "@/prompts";
-import { validIndexesFromSchema } from "@/lib/valid-indexes";
+import { timelineItemSchema, newText } from "@/prompts";
+import { TokenStreamArray } from "@/components/timeline";
+import {
+  timelineFallbacks,
+  TimelineItem,
+  TimelineItemSchema,
+} from "@/components/timeline-item";
 
 const Main = () => {
-  const [prompt] = useState("go");
-
-  const [result, setResult] = useState({});
-  const [schema, setSchema] = useState(newSchema);
+  const [result, setResult] = useState({
+    timeline: [],
+    _meta: { _activePath: [], _completedPaths: [] },
+  });
+  const [schema, setSchema] = useState(timelineItemSchema);
   const [text, setText] = useState(newText);
-
   const [loading, setLoading] = useState(false);
 
   const startStream = async ({ url }: { url: string }) => {
@@ -65,7 +69,7 @@ const Main = () => {
   };
 
   const submitMessage = async () => {
-    if (!prompt.length || loading) return;
+    if (loading) return;
 
     try {
       await startStream({
@@ -76,82 +80,67 @@ const Main = () => {
     }
   };
 
-  const timeline = result?.timeline || [];
-  const validIndexes = validIndexesFromSchema(result);
-
-  console.log(validIndexes);
-
   return (
-    <div className="container">
-      <div className="flex items-start w-full">
-        <div className="w-full h-full flex-1 min-h-[400px]">
-          <h3 className="text-lg font-bold">Raw text</h3>
-          <Textarea
-            className="w-full h-full flex-1 min-h-[400px]"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
-        </div>
-        <div className="w-full h-full flex-1 min-h-[400px]">
-          <h3 className="text-lg font-bold">Schema</h3>
-          <Textarea
-            className="w-full h-full flex-1 min-h-[400px]"
-            value={schema}
-            onChange={(e) => setSchema(e.target.value)}
-          />
-        </div>
-        <div className="w-full h-full flex-1 min-h-[400px]">
-          <h3 className="text-lg font-bold">Intermediate representation</h3>
-          <Textarea
-            className="w-full h-full flex-1 min-h-[400px]"
-            value={JSON.stringify(result)}
-            readOnly
-          />
-        </div>
-      </div>
-      <div className="flex-1 min-h-[200px]">
-        <h3 className="text-lg font-bold">Components</h3>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            {(result?.venue || result?.venue) && (
-              <Card key="venue">
-                <CardHeader>
-                  <CardTitle>Venue & Date</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p>{result?.venue}</p>
-                  <p>{result?.date}</p>
-                </CardContent>
-              </Card>
-            )}
+    <div className="container pt-2 h-screen">
+      <div className="flex gap-10 h-screen">
+        <div className="flex flex-col items-start w-[50%] h-full gap-2">
+          <div className="w-full flex-1">
+            <h3 className="text-lg font-bold">Schema</h3>
+            <Textarea
+              className="w-full flex-1 h-[280px]"
+              value={schema}
+              onChange={(e) => setSchema(e.target.value)}
+            />
           </div>
-          <div>
-            {timeline.map((user, i) =>
-              validIndexes.has(i) ? (
-                <Card key={user.actor}>
-                  <CardHeader>
-                    <CardTitle>{user.actor}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p>{user.eventname}</p>
-                    <p>{user.eventDescription}</p>
-                  </CardContent>
-                </Card>
-              ) : null
-            )}
+          <div className="w-full flex-1">
+            <h3 className="text-lg font-bold">Intermediate representation</h3>
+            <Textarea
+              className="w-full flex-1 h-[300px]"
+              value={JSON.stringify(result)}
+              readOnly
+            />
+          </div>
+          <div className="w-full flex-1">
+            <h3 className="text-lg font-bold">Raw text</h3>
+            <Textarea
+              className="w-full h-[270px] flex-1 "
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
           </div>
         </div>
+
+        <div className="flex-1 min-h-[200px]">
+          <div className="">
+            <Button className="w-full" onClick={submitMessage}>
+              {loading ? (
+                <div className="flex items-center gap-2">Loading...</div>
+              ) : (
+                "Start stream"
+              )}
+            </Button>
+            <div className="mt-5">
+              <ol className={"relative dark:border-gray-700 "}>
+                <TokenStreamArray
+                  data={result}
+                  schemaKey="timeline"
+                  fallbacks={timelineFallbacks}
+                  schema={TimelineItemSchema}
+                >
+                  {(item, metadata) => (
+                    <TimelineItem
+                      key={item.eventTitle}
+                      {...item}
+                      {...metadata}
+                    />
+                  )}
+                </TokenStreamArray>
+              </ol>
+            </div>
+          </div>
+        </div>
       </div>
-      <div></div>
-      <footer className="fixed bottom-0 left-0 w-full p-6 flex items-center justify-center gap-4">
-        <Button onClick={submitMessage}>
-          {loading ? (
-            <div className="flex items-center gap-2">Loading...</div>
-          ) : (
-            "start stream"
-          )}
-        </Button>
-      </footer>
+      <footer className="fixed bottom-0 left-0 w-full p-6 flex items-center justify-center gap-4"></footer>
     </div>
   );
 };

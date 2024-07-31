@@ -35,13 +35,12 @@ export async function POST(request: Request) {
     response_model: { schema: resolvedSchema, name: "Extract" },
     params: {
       messages,
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       stream: true,
     },
     mode: "TOOLS",
   });
 
-  // @ts-ignore
   const extractionStream = await oai.chat.completions.create(params);
 
   return new Response(

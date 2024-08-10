@@ -1,4 +1,4 @@
-export type Path = (string | number)[];
+export type Path = (string | number | undefined)[];
 
 export interface MetaData {
   _activePath: Path;

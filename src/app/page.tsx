@@ -1,25 +1,24 @@
 "use client";
 
+import { newText } from "@/prompts";
+import { Textarea } from "@/components/ui/textarea";
+import Output from "@/components/output";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { StreamableSchemaFragment } from "@/components/streamable-schema-fragment";
+import {
+  TimelineItem,
+  TimelineSchema,
+  timelineFallbacks,
+} from "@/components/timeline-item";
 import ZodStream from "zod-stream";
 
-import { jsonToZod } from "@/lib/json-to-zod";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { timelineItemSchema, newText } from "@/prompts";
-import { TokenStreamArray } from "@/components/timeline";
-import {
-  timelineFallbacks,
-  TimelineItem,
-  TimelineItemSchema,
-} from "@/components/timeline-item";
-
-const Main = () => {
+export default function Main() {
+  const [currentSchema, setCurrentSchema] = useState(TimelineSchema);
   const [result, setResult] = useState({
     timeline: [],
     _meta: { _activePath: [], _completedPaths: [] },
   });
-  const [schema, setSchema] = useState(timelineItemSchema);
   const [text, setText] = useState(newText);
   const [loading, setLoading] = useState(false);
 
@@ -31,7 +30,7 @@ const Main = () => {
         const response = await fetch(url, {
           method: "POST",
           body: JSON.stringify({
-            schema,
+            schema: "timeline",
             messages: [
               {
                 content: text,
@@ -46,16 +45,15 @@ const Main = () => {
 
         return response?.body;
       };
-      const zodSchema = jsonToZod(schema);
 
-      if (!zodSchema || zodSchema instanceof Error)
+      if (!currentSchema || currentSchema instanceof Error)
         throw new Error("failed to parse schema");
 
       const client = new ZodStream({});
 
       const extractionStream = await client.create({
         completionPromise: completion,
-        response_model: { schema: zodSchema, name: "Extractor" },
+        response_model: { schema: currentSchema, name: "Extractor" },
       });
 
       for await (const data of extractionStream) {
@@ -81,68 +79,53 @@ const Main = () => {
   };
 
   return (
-    <div className="container pt-2 h-screen">
-      <div className="flex gap-10 h-screen">
-        <div className="flex flex-col items-start w-[50%] h-full gap-2">
-          <div className="w-full flex-1">
-            <h3 className="text-lg font-bold">Schema</h3>
-            <Textarea
-              className="w-full flex-1 h-[280px]"
-              value={schema}
-              onChange={(e) => setSchema(e.target.value)}
-            />
-          </div>
-          <div className="w-full flex-1">
-            <h3 className="text-lg font-bold">Intermediate representation</h3>
-            <Textarea
-              className="w-full flex-1 h-[300px]"
-              value={JSON.stringify(result)}
-              readOnly
-            />
-          </div>
-          <div className="w-full flex-1">
-            <h3 className="text-lg font-bold">Raw text</h3>
-            <Textarea
-              className="w-full h-[270px] flex-1 "
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-            />
-          </div>
-        </div>
+    <>
+      <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
+        <h1 className="text-xl font-semibold">ZOD Schema streaming</h1>
+      </header>
+      <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col">
+          <div className="relative hidden flex-col items-start gap-8 md:flex">
+            <div className="w-full flex-1">
+              <h3 className="text-lg font-bold">Schema</h3>
+              <Textarea
+                className="w-full flex-1 h-[280px]"
+                value={JSON.stringify(currentSchema.shape, null, 2)}
+                readOnly
+              />
+            </div>
 
-        <div className="flex-1 min-h-[200px]">
-          <div className="">
-            <Button className="w-full" onClick={submitMessage}>
-              {loading ? (
-                <div className="flex items-center gap-2">Loading...</div>
-              ) : (
-                "Start stream"
-              )}
-            </Button>
-            <div className="mt-5">
-              <ol className={"relative dark:border-gray-700 "}>
-                <TokenStreamArray
-                  data={result}
-                  schemaKey="timeline"
-                  fallbacks={timelineFallbacks}
-                  schema={TimelineItemSchema}
-                >
-                  {(item, metadata) => (
-                    <TimelineItem
-                      key={item.eventTitle}
-                      {...item}
-                      {...metadata}
-                    />
-                  )}
-                </TokenStreamArray>
-              </ol>
+            <div className="w-full flex-1">
+              <h3 className="text-lg font-bold">Raw text</h3>
+              <Textarea
+                className="w-full h-[270px] flex-1"
+                value={newText}
+                readOnly
+              />
             </div>
           </div>
         </div>
-      </div>
-      <footer className="fixed bottom-0 left-0 w-full p-6 flex items-center justify-center gap-4"></footer>
-    </div>
-  );
-};
 
-export default Main;
+        <Output>
+          <Button onClick={submitMessage}>Start</Button>
+
+          <div className="mt-5">
+            <StreamableSchemaFragment
+              schema={currentSchema}
+              schemaKey="timeline"
+              data={result}
+              fallbacks={timelineFallbacks}
+            >
+              {(item, metadata) => {
+                console.log({ item, metadata });
+                return (
+                  <TimelineItem key={item.eventTitle} {...item} {...metadata} />
+                );
+              }}
+            </StreamableSchemaFragment>
+          </div>
+        </Output>
+      </main>
+    </>
+  );
+}

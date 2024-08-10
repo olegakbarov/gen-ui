@@ -1,8 +1,7 @@
 import OpenAI from "openai";
-import { z } from "zod";
 import { OAIStream, withResponseModel } from "zod-stream";
 
-import { jsonToZod } from "@/lib/json-to-zod";
+import { TimelineSchema } from "@/components/timeline-item";
 
 const oai = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"] ?? undefined,
@@ -16,23 +15,19 @@ interface IRequest {
   schema?: string;
 }
 
+const schemas = {
+  timeline: TimelineSchema,
+};
+
 export async function POST(request: Request) {
   const { messages, schema } = (await request.json()) as IRequest;
 
-  if (!schema) {
+  if (!schema || !schemas[schema]) {
     throw new Error("Schema is required");
   }
 
-  let resolvedSchema: z.ZodObject<any, any>;
-  const potentialSchema = jsonToZod(schema);
-  if (potentialSchema instanceof Error) {
-    throw potentialSchema;
-  }
-
-  resolvedSchema = potentialSchema;
-
   const params = withResponseModel({
-    response_model: { schema: resolvedSchema, name: "Extract" },
+    response_model: { schema: schemas[schema], name: "Extract" },
     params: {
       messages,
       model: "gpt-3.5-turbo",

@@ -12,9 +12,12 @@ import {
   timelineFallbacks,
 } from "@/components/timeline-item";
 import ZodStream from "zod-stream";
+import { TimelineItemMetadata } from "@/lib/ergo/utils";
+
+// FIXME
+const schema = TimelineSchema;
 
 export default function Main() {
-  const [currentSchema, setCurrentSchema] = useState(TimelineSchema);
   const [result, setResult] = useState({
     timeline: [],
     _meta: { _activePath: [], _completedPaths: [] },
@@ -46,14 +49,14 @@ export default function Main() {
         return response?.body;
       };
 
-      if (!currentSchema || currentSchema instanceof Error)
+      if (!schema || schema instanceof Error)
         throw new Error("failed to parse schema");
 
       const client = new ZodStream({});
 
       const extractionStream = await client.create({
         completionPromise: completion,
-        response_model: { schema: currentSchema, name: "Extractor" },
+        response_model: { schema: schema, name: "Extractor" },
       });
 
       for await (const data of extractionStream) {
@@ -90,7 +93,7 @@ export default function Main() {
               <h3 className="text-lg font-bold">Schema</h3>
               <Textarea
                 className="w-full flex-1 h-[280px]"
-                value={JSON.stringify(currentSchema.shape, null, 2)}
+                value={JSON.stringify(schema.shape, null, 2)}
                 readOnly
               />
             </div>
@@ -111,16 +114,13 @@ export default function Main() {
 
           <div className="mt-5">
             <StreamableSchemaFragment
-              schema={currentSchema}
+              schema={schema}
               schemaKey="timeline"
               data={result}
               fallbacks={timelineFallbacks}
             >
               {(item, metadata) => {
-                console.log({ item, metadata });
-                return (
-                  <TimelineItem key={item.eventTitle} {...item} {...metadata} />
-                );
+                return <TimelineItem {...item} {...metadata} />;
               }}
             </StreamableSchemaFragment>
           </div>

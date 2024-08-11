@@ -3,10 +3,11 @@ import {
   getCompletedPathsForItem,
   isPathCompletedOrActive,
   StreamingSchema,
-} from "@/lib/ergo/utils";
-import { createProxyWrapper } from "@/lib/ergo";
+} from "@/lib/stream-utils/utils";
+import { createProxyWrapper } from "@/lib/stream-utils";
+import { TimelineItemSchema } from "@/components/timeline-item";
 
-interface TokenStreamProps<T extends StreamingSchema> {
+interface TokenStreamProps {
   data: StreamingSchema;
   schemaKey: keyof z.ZodRawShape;
   fallbacks: { [K in keyof T]: React.ReactNode };
@@ -20,16 +21,14 @@ interface ArrayItemMetadata {
   isActive: boolean;
 }
 
-export function StreamableSchemaFragment<T extends StreamingSchema>({
+export function StreamableSchemaFragment({
   data,
   schemaKey,
   fallbacks,
   children,
   schema,
-}: TokenStreamProps<T>) {
+}: TokenStreamProps) {
   const _data = data[schemaKey] as (typeof schema)[] | undefined;
-
-  console.log({ _data });
 
   const comp = (_data ?? []).map((item, index) => {
     const basePath = [schemaKey, index];
@@ -48,11 +47,9 @@ export function StreamableSchemaFragment<T extends StreamingSchema>({
     const proxyItem = createProxyWrapper(
       item,
       fallbacks,
-      schema,
+      TimelineItemSchema,
       completedPaths
     );
-
-    // console.log({ proxyItem, isCompleted, isActive });
 
     const metadata: ArrayItemMetadata = {
       index,

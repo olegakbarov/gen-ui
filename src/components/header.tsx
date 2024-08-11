@@ -1,6 +1,6 @@
 "use client";
 
-import { Book, Bot, Code2, Settings2, SquareTerminal } from "lucide-react";
+import { Bot, Code2, SquareTerminal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -52,47 +52,21 @@ export const Header = () => {
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-lg"
-            aria-label="API"
-          >
-            <Code2 className="size-5" />
-          </Button>
+          <Link href="/structured-output">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`rounded-lg ${
+                path === "/structured-output" ? "bg-muted" : ""
+              }`}
+              aria-label="API"
+            >
+              <Code2 className="size-5" />
+            </Button>
+          </Link>
         </TooltipTrigger>
         <TooltipContent side="right" sideOffset={5}>
           API
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-lg"
-            aria-label="Documentation"
-          >
-            <Book className="size-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={5}>
-          Documentation
-        </TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-lg"
-            aria-label="Settings"
-          >
-            <Settings2 className="size-5" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={5}>
-          Settings
         </TooltipContent>
       </Tooltip>
     </nav>

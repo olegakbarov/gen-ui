@@ -48,7 +48,7 @@ export function createProxyWrapper<T extends object>(
           return value;
         }
       }
-      return fallbacks[prop as keyof T];
+      return new Promise(() => {}); // fallbacks[prop as keyof T];
     },
     getOwnPropertyDescriptor(target, prop) {
       if (typeof prop === "string" && prop in schema.shape) {

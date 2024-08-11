@@ -1,7 +1,6 @@
+import { SchemaNameSchema, AllSchemasMapping, SchemaName } from "@/schemas";
 import OpenAI from "openai";
 import { OAIStream, withResponseModel } from "zod-stream";
-
-import { TimelineSchema } from "@/components/timeline-item";
 
 const oai = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"] ?? undefined,
@@ -12,22 +11,26 @@ export const runtime = "edge";
 
 interface IRequest {
   messages: OpenAI.ChatCompletionMessageParam[];
-  schema?: string;
+  schema: SchemaName;
 }
-
-const schemas = {
-  timeline: TimelineSchema,
-};
 
 export async function POST(request: Request) {
   const { messages, schema } = (await request.json()) as IRequest;
 
-  if (!schema || !schemas[schema]) {
+  if (!schema) {
     throw new Error("Schema is required");
   }
 
+  const schemaName = SchemaNameSchema.safeParse(schema);
+
+  if (!schemaName.success) {
+    throw new Error("Schema is required");
+  }
+
+  const key = schemaName.data;
+
   const params = withResponseModel({
-    response_model: { schema: schemas[schema], name: "Extract" },
+    response_model: { schema: AllSchemasMapping[key], name: "Extract" },
     params: {
       messages,
       model: "gpt-3.5-turbo",

@@ -1,4 +1,5 @@
 import { TimelineItemMetadata } from "@/lib/ergo/utils";
+import { Suspense } from "react";
 import * as z from "zod";
 
 // SCHEMA AND TYPE
@@ -18,7 +19,6 @@ export const TimelineSchema = z.object({
 export const TimelineItem = (
   data: TimelineItemProps & TimelineItemMetadata
 ) => {
-  console.log({ data });
   // if (!data.isCompleted) {
   //   return (
   //     <>
@@ -51,13 +51,17 @@ export const TimelineItem = (
       </div>
       <div>
         <h3 className="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">
-          {data.eventTitle}
+          <Suspense fallback={timelineFallbacks.eventTitle}>
+            {data.eventTitle}
+          </Suspense>
         </h3>
         <time className="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
-          {data.date}
+          <Suspense fallback={timelineFallbacks.date}>{data.date}</Suspense>
         </time>
         <div className="text-base font-normal text-gray-500 dark:text-gray-400 pb-4">
-          {data.details}
+          <Suspense fallback={timelineFallbacks.details}>
+            {data.details}
+          </Suspense>
         </div>
       </div>
     </li>

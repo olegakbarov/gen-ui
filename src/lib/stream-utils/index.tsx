@@ -1,5 +1,4 @@
-import { Path } from "@/lib/ergo/utils";
-import React from "react";
+import { Path } from "@/lib/stream-utils/utils";
 import * as z from "zod";
 
 /**
@@ -12,7 +11,6 @@ import * as z from "zod";
 
 export function createProxyWrapper<T extends object>(
   target: T,
-  fallbacks: { [K in keyof T]: React.ReactNode },
   schema: z.ZodObject<any>,
   completedPaths: Path[]
 ) {
@@ -38,7 +36,6 @@ export function createProxyWrapper<T extends object>(
             const nestedSchema = schema.shape[prop] as z.ZodObject<any>;
             return createProxyWrapper(
               value,
-              fallbacks[prop as keyof T] as any,
               nestedSchema,
               completedPaths
                 .filter((path) => path[0] === prop)
@@ -64,7 +61,7 @@ export function createProxyWrapper<T extends object>(
       return Object.keys(schema.shape);
     },
     has(target, prop) {
-      return prop in target || prop in fallbacks;
+      return prop in target;
     },
   };
 

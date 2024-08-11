@@ -1,4 +1,4 @@
-import { TimelineItemMetadata } from "@/lib/ergo/utils";
+import { ArrayItemMetadata } from "@/lib/stream-utils/utils";
 import { Suspense } from "react";
 import * as z from "zod";
 
@@ -12,27 +12,45 @@ export const TimelineItemSchema = z.object({
 type TimelineItemProps = z.infer<typeof TimelineItemSchema>;
 
 export const TimelineSchema = z.object({
+  // maybe should be just an array?
   timeline: z.array(TimelineItemSchema).describe("Timeline items"),
 });
 
+// STREAMING FALLBACKS
+export const timelineFallbacks = {
+  eventTitle: (
+    <div className="h-4 bg-gray-300 rounded w-3/4 mb-4 relative overflow-hidden animate-pulse">
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
+    </div>
+  ),
+  date: (
+    <div className="h-2 bg-gray-300 rounded w-1/4 mb-4 relative overflow-hidden animate-pulse">
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
+    </div>
+  ),
+  details: (
+    <div className="h-6 bg-gray-300 rounded w-3/4 mb-4 relative overflow-hidden animate-pulse">
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
+    </div>
+  ),
+};
+
 // COMPONENT
-export const TimelineItem = (
-  data: TimelineItemProps & TimelineItemMetadata
-) => {
-  // if (!data.isCompleted) {
-  //   return (
-  //     <>
-  //       {Array.from({ length: 3 }).map((_, index) => (
-  //         <div
-  //           key={index}
-  //           className="h-6 bg-gray-300 rounded w-3/4 mb-4 relative overflow-hidden animate-pulse"
-  //         >
-  //           <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
-  //         </div>
-  //       ))}
-  //     </>
-  //   );
-  // }
+export const TimelineItem = (data: TimelineItemProps & ArrayItemMetadata) => {
+  if (data.loadingUntilCompleted && !data.isCompleted) {
+    return (
+      <>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div
+            key={index}
+            className="h-6 bg-gray-300 rounded w-3/4 mb-4 relative overflow-hidden animate-pulse"
+          >
+            <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
+          </div>
+        ))}
+      </>
+    );
+  }
   return (
     <li className="grid grid-cols-[auto,1fr] gap-x-4 list-none">
       <div className="relative">
@@ -66,23 +84,4 @@ export const TimelineItem = (
       </div>
     </li>
   );
-};
-
-// STREAMING FALLBACKS
-export const timelineFallbacks = {
-  eventTitle: (
-    <div className="h-4 bg-gray-300 rounded w-3/4 mb-4 relative overflow-hidden animate-pulse">
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
-    </div>
-  ),
-  date: (
-    <div className="h-2 bg-gray-300 rounded w-1/4 mb-4 relative overflow-hidden animate-pulse">
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
-    </div>
-  ),
-  details: (
-    <div className="h-6 bg-gray-300 rounded w-3/4 mb-4 relative overflow-hidden animate-pulse">
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300"></div>
-    </div>
-  ),
 };

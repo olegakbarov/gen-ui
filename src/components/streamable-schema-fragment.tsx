@@ -1,5 +1,6 @@
 import * as z from "zod";
 import {
+  ArrayItemMetadata,
   getCompletedPathsForItem,
   isPathCompletedOrActive,
   StreamingSchema,
@@ -7,28 +8,25 @@ import {
 import { createProxyWrapper } from "@/lib/stream-utils";
 import { TimelineItemSchema } from "@/components/timeline-item";
 
-interface TokenStreamProps {
+interface TokenStreamProps<T extends z.ZodRawShape, K extends keyof T> {
+  // streaming data represented as partial schema
   data: StreamingSchema;
-  schemaKey: keyof z.ZodRawShape;
-  fallbacks: { [K in keyof T]: React.ReactNode };
-  children: (item: T, metadata: T) => React.ReactNode;
+  // full schema
   schema: z.ZodObject<T>;
+  // schema key that represents the current component
+  schemaKey: K;
+  //
+  children: (
+    item: z.infer<z.ZodObject<T>>[K],
+    metadata: ArrayItemMetadata
+  ) => React.ReactNode;
 }
 
-interface ArrayItemMetadata {
-  index: number;
-  isCompleted: boolean;
-  isActive: boolean;
-}
-
-export function StreamableSchemaFragment({
-  data,
-  schemaKey,
-  fallbacks,
-  children,
-  schema,
-}: TokenStreamProps) {
-  const _data = data[schemaKey] as (typeof schema)[] | undefined;
+export function StreamableSchemaFragment<
+  T extends z.ZodRawShape,
+  K extends string
+>({ data, schemaKey, children, schema }: TokenStreamProps<T, K>) {
+  const _data = data[schemaKey] as z.infer<z.ZodObject<T>>[] | undefined;
 
   const comp = (_data ?? []).map((item, index) => {
     const basePath = [schemaKey, index];
@@ -46,7 +44,6 @@ export function StreamableSchemaFragment({
 
     const proxyItem = createProxyWrapper(
       item,
-      fallbacks,
       TimelineItemSchema,
       completedPaths
     );
@@ -55,6 +52,7 @@ export function StreamableSchemaFragment({
       index,
       isCompleted,
       isActive,
+      loadingUntilCompleted: false,
     };
 
     return children(proxyItem, metadata);

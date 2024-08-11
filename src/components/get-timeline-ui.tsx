@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   TimelineItem,
   TimelineItemSchema,
+  TimelineSchema,
   timelineFallbacks,
 } from "@/components/timeline-item";
 import OpenAI from "openai";
@@ -57,10 +58,9 @@ export async function getTimeline() {
   const render = async (stream) => {
     for await (const data of stream) {
       timelineUI.update(
-        <StreamableSchemaFragment
+        <StreamableSchemaFragment<(typeof TimelineSchema)["shape"]>
           data={data}
           schemaKey="timeline"
-          fallbacks={timelineFallbacks}
           schema={schema}
         >
           {(item, metadata) => {

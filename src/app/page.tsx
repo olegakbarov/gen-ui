@@ -6,22 +6,23 @@ import Output from "@/components/output";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { StreamableSchemaFragment } from "@/components/streamable-schema-fragment";
-import {
-  TimelineItem,
-  TimelineSchema,
-  timelineFallbacks,
-} from "@/components/timeline-item";
-import ZodStream from "zod-stream";
-import { TimelineItemMetadata } from "@/lib/ergo/utils";
+import { TimelineItem, TimelineSchema } from "@/components/timeline-item";
+import ZodStream, { CompletionMeta } from "zod-stream";
+import { z } from "zod";
 
 // FIXME
 const schema = TimelineSchema;
 
+// FIXME
+const emptyState = {
+  timeline: [],
+  _meta: { _activePath: [], _completedPaths: [] },
+} as unknown as Partial<z.infer<typeof TimelineSchema>> & {
+  _meta: CompletionMeta;
+};
+
 export default function Main() {
-  const [result, setResult] = useState({
-    timeline: [],
-    _meta: { _activePath: [], _completedPaths: [] },
-  });
+  const [result, setResult] = useState(emptyState);
   const [text, setText] = useState(newText);
   const [loading, setLoading] = useState(false);
 
@@ -103,7 +104,7 @@ export default function Main() {
               <Textarea
                 className="w-full h-[270px] flex-1"
                 value={newText}
-                readOnly
+                onChange={(e) => setText(e.target.value)}
               />
             </div>
           </div>
@@ -113,13 +114,16 @@ export default function Main() {
           <Button onClick={submitMessage}>Start</Button>
 
           <div className="mt-5">
-            <StreamableSchemaFragment
+            <StreamableSchemaFragment<
+              (typeof TimelineSchema)["shape"],
+              "timeline"
+            >
               schema={schema}
               schemaKey="timeline"
               data={result}
-              fallbacks={timelineFallbacks}
             >
               {(item, metadata) => {
+                // this type is correct, fix StreamableSchemaFragment
                 return <TimelineItem {...item} {...metadata} />;
               }}
             </StreamableSchemaFragment>

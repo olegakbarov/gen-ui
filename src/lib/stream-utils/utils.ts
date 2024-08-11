@@ -10,10 +10,11 @@ export interface StreamingSchema {
   _meta: MetaData;
 }
 
-export interface TimelineItemMetadata {
+export interface ArrayItemMetadata {
   index: number;
   isCompleted: boolean;
   isActive: boolean;
+  loadingUntilCompleted: boolean;
 }
 
 export function isPathCompletedOrActive(

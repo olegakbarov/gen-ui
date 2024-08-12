@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { Header } from "@/components/header";
 import { Navbar } from "@/components/navbar";
+import { GlobalStateProvider } from "@/providers/global-state";
+import { Toolbar } from "@/components/toolbar";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -38,15 +40,25 @@ export default function RootLayout({
                 <Laugh className="size-5" />
               </Button>
             </div>
-
             <Header />
-
             <Navbar />
           </aside>
 
-          <div className="grid h-screen w-full pl-[55px]">
-            <div className="flex flex-col">{children}</div>
-          </div>
+          <GlobalStateProvider>
+            <div className="grid h-screen w-full pl-[55px]">
+              <div className="flex flex-col">
+                <header className="sticky top-0 z-10 flex h-[57px] items-center gap-1 border-b bg-background px-4">
+                  <h1 className="text-xl font-semibold">
+                    ZOD Schema streaming
+                  </h1>
+                </header>
+                <main className="grid flex-1 gap-4 overflow-auto p-4 md:grid-cols-3 ">
+                  <Toolbar />
+                  {children}
+                </main>
+              </div>
+            </div>
+          </GlobalStateProvider>
         </TooltipProvider>
       </body>
     </html>

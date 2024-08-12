@@ -4,7 +4,7 @@ export const timelineItemSchema = `{"timeline":
       "details": "string" 
     }]}`;
 
-export const newText = `Here's a concise timeline of Alexander the Great's life and major events:
+export const AlexanderTheGreatBio = `Here's a concise timeline of Alexander the Great's life and major events:
 
 356 BCE: Alexander is born in Pella, Macedonia, to King Philip II and Queen Olympias.
 

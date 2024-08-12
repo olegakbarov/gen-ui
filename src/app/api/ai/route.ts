@@ -11,17 +11,16 @@ export const runtime = "edge";
 
 interface IRequest {
   messages: OpenAI.ChatCompletionMessageParam[];
-  schema: SchemaName;
+  schemaName: SchemaName;
 }
 
 export async function POST(request: Request) {
-  const { messages, schema } = (await request.json()) as IRequest;
+  const { messages, schemaName: schemaNameInput } =
+    (await request.json()) as IRequest;
 
-  if (!schema) {
-    throw new Error("Schema is required");
-  }
+  if (!schemaNameInput) throw new Error("Schema is required");
 
-  const schemaName = SchemaNameSchema.safeParse(schema);
+  const schemaName = SchemaNameSchema.safeParse(schemaNameInput);
 
   if (!schemaName.success) {
     throw new Error("Schema is required");

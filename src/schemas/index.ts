@@ -2,7 +2,7 @@ import { TimelineSchema } from "@/components/timeline-item";
 import * as z from "zod";
 
 export const AllSchemasMapping = {
-  timeline: TimelineSchema,
+  Timeline: TimelineSchema,
 } as const;
 
 const AvailableSchemas = z.object(AllSchemasMapping);

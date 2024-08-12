@@ -2,28 +2,25 @@
 
 import { createStreamableUI } from "ai/rsc";
 import ZodStream, { OAIStream, withResponseModel } from "zod-stream";
-import { newText } from "@/prompts";
-import { z } from "zod";
-import {
-  TimelineItem,
-  TimelineItemSchema,
-  TimelineSchema,
-  timelineFallbacks,
-} from "@/components/timeline-item";
+import { TimelineItem } from "@/components/timeline-item";
 import OpenAI from "openai";
 import { StreamableSchemaFragment } from "@/components/streamable-schema-fragment";
-
-const schema = z.object({
-  timeline: z.array(TimelineItemSchema),
-});
+import { AllSchemasMapping, SchemaName } from "@/schemas";
 
 const oai = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"] ?? undefined,
   organization: process.env["OPENAI_ORG_ID"] ?? undefined,
 });
 
-export async function getTimeline() {
+export async function getTimeline({
+  schemaName,
+  text,
+}: {
+  schemaName: SchemaName;
+  text: string;
+}) {
   const timelineUI = createStreamableUI();
+  const schema = AllSchemasMapping[schemaName];
 
   timelineUI.update(<div style={{ color: "gray" }}>Loading...</div>);
 
@@ -32,7 +29,7 @@ export async function getTimeline() {
     params: {
       messages: [
         {
-          content: newText,
+          content: text,
           role: "user",
         },
       ],
@@ -58,7 +55,7 @@ export async function getTimeline() {
   const render = async (stream) => {
     for await (const data of stream) {
       timelineUI.update(
-        <StreamableSchemaFragment<(typeof TimelineSchema)["shape"]>
+        <StreamableSchemaFragment
           data={data}
           schemaKey="timeline"
           schema={schema}
@@ -71,9 +68,9 @@ export async function getTimeline() {
     }
   };
 
-  render(extractionStreamClient);
-
-  // timelineUI.done();
+  render(extractionStreamClient).then(() => {
+    timelineUI.done();
+  });
 
   return timelineUI.value;
 }
